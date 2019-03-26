@@ -10,3 +10,6 @@ F:\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb
 F:\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe
 F:\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.pdb
 F:\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.csprojResolveAssemblyReference.cache
+E:\github\UDP_Ladar\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe.config
+E:\github\UDP_Ladar\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.exe
+E:\github\UDP_Ladar\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb

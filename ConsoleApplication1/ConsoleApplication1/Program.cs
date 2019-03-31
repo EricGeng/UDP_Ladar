@@ -13,15 +13,12 @@ namespace ConsoleApplication1
     class Program
     {
         static Socket client;
-        //  private static readonly byte[] pit;
-
         static void Main(string[] args)
         {
             client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             client.Bind(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 2014));
             Thread t = new Thread(sendMsg);
             t.Start();
-            //Thread t2 = new Thread(receiveMsg);
         }
         //把16进制字符串转化为byte格式
         private static byte[] HexStrTobyte(string hexString)
@@ -35,11 +32,6 @@ namespace ConsoleApplication1
             return returnBytes;
         }
         //给特定的ip的主机端口发生送数据包
-        /*static void sendMsg()
-        {
-            EndPoint point = new IPEndPoint(IPAddress.Parse("192.168.0.3"), 2015);
-            client.SendTo(Encoding.UTF8.GetBytes(msg), point);
-        }*/
         static void sendMsg()
         {
             byte[] stop = HexStrTobyte("A5 4F 00 40 0F 00 00 00");
@@ -79,45 +71,35 @@ namespace ConsoleApplication1
         //接受发送给本机ip特定端口的数据包         
         static void receiveMsg()
         {
-            for (int j = 0; j < 30; j++)
+            for (int j = 0; j < 20; j++)
             {
                 EndPoint point = new IPEndPoint(IPAddress.Parse("192.168.0.3"), 2014);
-                byte[] buffer = new byte[1248];
+                byte[] buffer = new byte[1206];
                 int length = client.ReceiveFrom(buffer, ref point);
-                //string message = Encoding.UTF8.GetString(buffer, 0, length);
-                // byte[] data = buffer; 
+                //显示数据到控制台查看是否正非常
                 string meg = BitConverter.ToString(buffer);
                 Console.WriteLine(point.ToString() + "点云数据16进制：" + meg);
-                Thread.Sleep(500);
-
-                if (j == 29)
+                //Thread.Sleep(100);
+                using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\" + j + "_R" + ".txt"))
                 {
-                    /*FileStream fs = new FileStream("C:/Users/radar/Desktop/1.txt", FileMode.Create, FileAccess.ReadWrite);
-                    StreamWriter sw = new StreamWriter(fs);*/
-                    using (StreamWriter sw = new StreamWriter(@"C:/Users/radar/Desktop/1.txt"))
+                    for (int k = 0; k < 1106; k = k + 100)
                     {
-                        //
-                        for (int k = 42; k < 1242; k = k + 100)
+                        byte[] pit = new byte[100];
+                        for (int z = 0; z < 100; z = z + 1)
                         {
-                            byte[] pit = new byte[100];
-                            for (int z = 0; z < 100; z = z + 1)
-                            {
-                                pit[z] = buffer[k + z];
-                                //Console.WriteLine(pit1);
-                            }
-                            string pz = BitConverter.ToString(pit);
-                            //string pz = System.Text.Encoding.UTF8.GetString(pit);
-                            //File.WriteAllText("C:/Users/radar/Desktop/1.txt",pz,Encoding.Default);
-                            sw.WriteLine(pz);
-                            // fs.WriteByte(pit[z]);
+                            int m = k + z;
+                            pit[z] = buffer[m];
                         }
+                        string pz = BitConverter.ToString(pit);
+                        //string pz = System.Text.Encoding.UTF8.GetString(pit);
+                        //File.WriteAllText("C:/Users/radar/Desktop/1.txt",pz,Encoding.Default);
+                        sw.WriteLine(pz);
+                        // fs.WriteByte(pit[z]);
                     }
-
-                    //System.IO.File.WriteAllText("C:/Users/radar/Desktop/1.txt",message , Encoding.Default);   
-                    Console.WriteLine("数据写入完成");
                 }
+                Console.WriteLine("数据写入完成");
             }
-
         }
+
     }
 }

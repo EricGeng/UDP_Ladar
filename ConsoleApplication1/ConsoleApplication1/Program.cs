@@ -13,7 +13,7 @@ namespace ConsoleApplication1
     class Program
     {
         static Socket client;
-
+        static List<byte> signal = new List<byte>();
         static void Main(string[] args)
         {
             client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -52,6 +52,7 @@ namespace ConsoleApplication1
                 {
                     client.SendTo(f_hz, point);
                     receiveMsg();
+                    datapro();
                     Gathertxt();
                     continue;
                 }
@@ -59,14 +60,16 @@ namespace ConsoleApplication1
                 {
                     client.SendTo(t_hz, point);
                     receiveMsg();
-                    Gathertxt();
+                    datapro();
+                    // Gathertxt();
                     continue;
                 }
                 else if (key == "tw")
                 {
                     client.SendTo(tw_hz, point);
                     receiveMsg();
-                    Gathertxt();
+                    datapro();
+                    //Gathertxt();
                     continue;
                 }
             }
@@ -75,50 +78,64 @@ namespace ConsoleApplication1
         static void receiveMsg()
         {
             double wt;
-            List<byte> signal = new List<byte>();
-            StreamWriter sy = new StreamWriter("C:/Users/EricGeng/Desktop/23.txt");
+            // List<byte> signal = new List<byte>();           
             for (int j = 0; j < 1800; j++)
             {
                 EndPoint point = new IPEndPoint(IPAddress.Parse("192.168.0.3"), 2014);
                 byte[] buffer = new byte[1206];
                 int length = client.ReceiveFrom(buffer, ref point);
-                //显示数据到控制台查看是否正非常
                 //string meg = BitConverter.ToString(buffer);
-                //Console.WriteLine(point.ToString() + "点云数据16进制：" + meg);
-                wt = (Convert.ToInt32(buffer[3]) * 256 + Convert.ToInt32(buffer[2])) * 0.01;
-                List<double> data = new List<double>();
-
-                foreach (byte i in buffer)  //有个思路是将所有的数据一起收集起来，然后一起处理
-                {
-                    signal.Add(i);
-                }
+                //Console.WriteLine(point.ToString() + "点云数据16进制：" + meg);//显示数据到控制台查看是否正非常
+                wt = (Convert.ToInt32(buffer[3]) * 256 + Convert.ToInt32(buffer[2])) * 0.01;//计算方位角，转化成double格式
                 // List<double> zuobiao = datapro(wt,buffer[4]);
                 /*foreach (double s in zuobiao)
-                 {
-                     Console.WriteLine(s);//遍历list
-                 }*/
-                //Console.WriteLine(s);
+                 {Console.WriteLine(s);//遍历list}*/
                 //Thread.Sleep(100);
-                if (wt > 0 && wt < 180)
+                /*if (wt > 0 && wt < 180)
                 {
-
-                    #region 
-                    //一组数据的三维坐标计算
-                    for (int a = 0; a < 12; a++)
+                    foreach (byte i in buffer)  //将所有符合条件的数据一起收集到一个list中
                     {
+                        Program.signal.Add(i);
+                    }
+                }*/
+                foreach (byte i in buffer)  //将所有符合条件的数据一起收集到一个list中
+                {
+                    Program.signal.Add(i);
+                }
+                // Console.WriteLine(j);
+            }
+        }
+        static void datapro()   //分组数据的三维坐标计算
+        {
+            int f = 1;
+            #region      
+            for (int a = 0; a < signal.Count; a = a + 1206)   //数据分组
+            {
+                //StreamWriter sy = new StreamWriter("C:/Users/EricGeng/Desktop/23.txt");
+                byte[] group = new byte[1206];
+                for (int b = 0; b < 1206; b++)
+                {
+                    group[b] = signal[b + a];
+                }
+                using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\data\" + f + "_data" + ".txt"))
+                {
+                    List<double> data = new List<double>();
+                    for (int c = 0; c < 12; c++)
+                    {
+                        double wt = (Convert.ToInt32(group[3]) * 256 + Convert.ToInt32(group[2])) * 0.01;
                         double[] range = new double[32];
-                        for (int b = 0; b < 32; b++)
+                        double[] reflet = new double[32];
+                        for (int d = 0; d < 32; d++)
                         {
-                            int c = 4;
-                            range[b] = (Convert.ToInt32(buffer[c + 1]) * 256 + Convert.ToInt32(buffer[c])) * 4;
-                            c = c + 3;
+                            int e = 4;
+                            range[d] = (Convert.ToInt32(group[e + 1]) * 256 + Convert.ToInt32(group[e])) * 4;
+                            reflet[d] = Convert.ToInt32(group[e + 2]);
+                            e = e + 3;
                         }
                         double[] H_ang = { -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35 };
                         double[] V_ang = { -19, -17, -15, -13, -11, -9, -7, -5, -3, -1, 1, 3, 5, 7, 9, 11 };
                         double[] dt = { 0, 3.125, 6.25, 9.375, 12.5, 15.625, 18.75, 21.875, 25, 28.125, 31.25, 34.375, 37.5, 40.625, 43.75, 46.875 };
-                        //double range = 50;
                         double w = 0.0018;
-                        //double[] data = { };                
                         for (int i = 0; i < 32; i++)
                         {
                             if (i < 16)
@@ -130,6 +147,7 @@ namespace ConsoleApplication1
                                 data.Add(x);
                                 data.Add(y);
                                 data.Add(z);
+                                data.Add(reflet[i]);
                             }
                             else
                             {
@@ -140,52 +158,50 @@ namespace ConsoleApplication1
                                 data.Add(x);
                                 data.Add(y);
                                 data.Add(z);
+                                data.Add(reflet[i]);
                             }
                         }
-                    }
-                    foreach (double s in data)
-                    {
-                        //Console.WriteLine(s.ToString());
-                        sy.WriteLine(s.ToString());
-                    }
-                    sy.Close();
-                    #endregion
-                    #region
-                    //16进制格式写入文件
-                    using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\" + j + "_R" + ".txt"))
-                    {
-                        for (int k = 0; k < 1106; k = k + 100)
+                        foreach (double s in data)
                         {
-                            byte[] pit = new byte[100];
-                            for (int z = 0; z < 100; z = z + 1)
-                            {
-                                int m = k + z;
-                                pit[z] = buffer[m];
-                            }
-                            string pz = BitConverter.ToString(pit);
-                            /*int pi = Convert.ToInt32(pit[z]);
-                              Console.WriteLine(pi);*///转化16进制到十进制                       
-                                                      //string pz = System.Text.Encoding.UTF8.GetString(pit);
-                                                      //File.WriteAllText("C:/Users/radar/Desktop/1.txt",pz,Encoding.Default);
-                            sw.WriteLine(pz);
-                            // fs.WriteByte(pit[z]);
+                            sw.WriteLine(s.ToString());
                         }
+                        //sw.Close();
                     }
                     #endregion
-                    Console.WriteLine("数据写入完成");
-                    // datapro(wt);
                 }
+                f++;
             }
+            #region   16进制格式写入文件
+            /*  using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\" + j + "_R" + ".txt"))
+              {
+                  for (int k = 0; k < 1106; k = k + 100)
+                  {
+                      byte[] pit = new byte[100];
+                      for (int z = 0; z < 100; z = z + 1)
+                      {
+                          int m = k + z;
+                          pit[z] = buffer[m];
+                      }
+                      string pz = BitConverter.ToString(pit);
+                      //int pi = Convert.ToInt32(pit[z]);//转化16进制到十进制                       
+                      sw.WriteLine(pz);
+                      // fs.WriteByte(pit[z]);
+                  }
+              }*/
+            #endregion
+            Console.WriteLine("数据写入完成");
+            // datapro(wt);
         }
         static void Gathertxt()        //合并txt文件，整合一次实验数据
         {
-            for (int n = 0; n < 900; n = n + 2)
+            for (int n = 0; n < signal.Count / 1206; n++)
             {
                 int m = n + 1;
                 string a = File.ReadAllText("C:/Users/radar/Desktop/全部数据.txt");
-                string b = File.ReadAllText(@"C:\Users\radar\Desktop\20190331\" + m + "_R" + ".txt");
+                string b = File.ReadAllText(@"C:\Users\radar\Desktop\data\" + m + "_data" + ".txt");
                 File.WriteAllText("C:/Users/radar/Desktop/全部数据.txt", a + b);
             }
+            Console.WriteLine("数据合并完成");
         }
         static void change_data()//暂时没想好写啥
         {

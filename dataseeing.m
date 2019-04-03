@@ -1,7 +1,7 @@
 % 数据可视化
 clear;
 clc;
-m=load("C:\Users\radar\Desktop\全部数据.txt");   %单独读取文件全部数据
+m=load("E:\github\UDP_Ladar\20190402data\46_data.txt");   %单独读取文件全部数据
 n=size(m);
 n=n(1)/4;
 data=ones(n,4);
@@ -16,4 +16,4 @@ end
 x=data(:,1);
 y=data(:,2);
 z=data(:,3);
-scatter3(x,y,z,'.');
+scatter3(x,y,z,'.','r');

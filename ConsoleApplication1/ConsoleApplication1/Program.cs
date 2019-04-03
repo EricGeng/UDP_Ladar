@@ -122,14 +122,14 @@ namespace ConsoleApplication1
                     List<double> data = new List<double>();
                     for (int c = 0; c < 12; c++)
                     {
-                        double wt = (Convert.ToInt32(group[3]) * 256 + Convert.ToInt32(group[2])) * 0.01;
+                        double wt = (Convert.ToInt32(group[3 + 100 * c]) * 256 + Convert.ToInt32(group[2 + 100 * c])) * 0.01;//the azimuth angle of one group
                         double[] range = new double[32];
                         double[] reflet = new double[32];
                         for (int d = 0; d < 32; d++)
                         {
                             int e = 4;
-                            range[d] = (Convert.ToInt32(group[e + 1]) * 256 + Convert.ToInt32(group[e])) * 4;
-                            reflet[d] = Convert.ToInt32(group[e + 2]);
+                            range[d] = (Convert.ToInt32(group[100 * c + e + 1]) * 256 + Convert.ToInt32(group[100 * c + e])) * 4;
+                            reflet[d] = Convert.ToInt32(group[100 * c + e + 2]);
                             e = e + 3;
                         }
                         double[] H_ang = { -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35 };
@@ -160,12 +160,11 @@ namespace ConsoleApplication1
                                 data.Add(z);
                                 data.Add(reflet[i]);
                             }
-                        }
-                        foreach (double s in data)
-                        {
-                            sw.WriteLine(s.ToString());
-                        }
-                        //sw.Close();
+                        }                        
+                    }
+                    foreach (double s in data)
+                    {
+                        sw.WriteLine(s.ToString());
                     }
                     #endregion
                 }

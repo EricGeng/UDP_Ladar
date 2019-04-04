@@ -108,10 +108,8 @@ namespace ConsoleApplication1
         static void datapro()   //分组数据的三维坐标计算
         {
             int f = 1;
-            #region      
             for (int a = 0; a < signal.Count; a = a + 1206)   //数据分组
             {
-                //StreamWriter sy = new StreamWriter("C:/Users/EricGeng/Desktop/23.txt");
                 byte[] group = new byte[1206];
                 for (int b = 0; b < 1206; b++)
                 {
@@ -125,9 +123,9 @@ namespace ConsoleApplication1
                         double wt = (Convert.ToInt32(group[3 + 100 * c]) * 256 + Convert.ToInt32(group[2 + 100 * c])) * 0.01;//the azimuth angle of one group
                         double[] range = new double[32];
                         double[] reflet = new double[32];
+                        int e = 4;
                         for (int d = 0; d < 32; d++)
                         {
-                            int e = 4;
                             range[d] = (Convert.ToInt32(group[100 * c + e + 1]) * 256 + Convert.ToInt32(group[100 * c + e])) * 4;
                             reflet[d] = Convert.ToInt32(group[100 * c + e + 2]);
                             e = e + 3;
@@ -140,10 +138,10 @@ namespace ConsoleApplication1
                         {
                             if (i < 16)
                             {
-                                double angle = -wt - w * dt[i] - H_ang[i];
-                                double y = range[i] * Math.Cos(V_ang[i]) * Math.Sin(angle);
-                                double x = range[i] * Math.Cos(V_ang[i]) * Math.Cos(angle);
-                                double z = range[i] * Math.Sin(V_ang[i]);
+                                double angle = (-wt - w * dt[i] - H_ang[i]) / 180 * Math.PI;
+                                double y = range[i] * Math.Cos(V_ang[i] / 180 * Math.PI) * Math.Sin(angle);
+                                double x = range[i] * Math.Cos(V_ang[i] / 180 * Math.PI) * Math.Cos(angle);
+                                double z = range[i] * Math.Sin(V_ang[i] / 180 * Math.PI);
                                 data.Add(x);
                                 data.Add(y);
                                 data.Add(z);
@@ -151,44 +149,43 @@ namespace ConsoleApplication1
                             }
                             else
                             {
-                                double angle = -wt - w * (dt[i - 16] + 50) - H_ang[i - 16];
-                                double y = range[i] * Math.Cos(V_ang[i - 16]) * Math.Sin(angle);
-                                double x = range[i] * Math.Cos(V_ang[i - 16]) * Math.Cos(angle);
-                                double z = range[i] * Math.Sin(V_ang[i - 16]);
+                                double angle = (-wt - w * (dt[i - 16] + 50) - H_ang[i - 16]) / 180 * Math.PI;
+                                double y = range[i] * Math.Cos(V_ang[i - 16] / 180 * Math.PI) * Math.Sin(angle);
+                                double x = range[i] * Math.Cos(V_ang[i - 16] / 180 * Math.PI) * Math.Cos(angle);
+                                double z = range[i] * Math.Sin(V_ang[i - 16] / 180 * Math.PI);
                                 data.Add(x);
                                 data.Add(y);
                                 data.Add(z);
                                 data.Add(reflet[i]);
                             }
-                        }                        
+                        }
                     }
                     foreach (double s in data)
                     {
                         sw.WriteLine(s.ToString());
                     }
-                    #endregion
                 }
                 f++;
             }
-            #region   16进制格式写入文件
-            /*  using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\" + j + "_R" + ".txt"))
+        #region   16进制格式写入文件
+        /*  using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\" + j + "_R" + ".txt"))
+          {
+              for (int k = 0; k < 1106; k = k + 100)
               {
-                  for (int k = 0; k < 1106; k = k + 100)
+                  byte[] pit = new byte[100];
+                  for (int z = 0; z < 100; z = z + 1)
                   {
-                      byte[] pit = new byte[100];
-                      for (int z = 0; z < 100; z = z + 1)
-                      {
-                          int m = k + z;
-                          pit[z] = buffer[m];
-                      }
-                      string pz = BitConverter.ToString(pit);
-                      //int pi = Convert.ToInt32(pit[z]);//转化16进制到十进制                       
-                      sw.WriteLine(pz);
-                      // fs.WriteByte(pit[z]);
+                      int m = k + z;
+                      pit[z] = buffer[m];
                   }
-              }*/
-            #endregion
-            Console.WriteLine("数据写入完成");
+                  string pz = BitConverter.ToString(pit);
+                  //int pi = Convert.ToInt32(pit[z]);//转化16进制到十进制                       
+                  sw.WriteLine(pz);
+                  // fs.WriteByte(pit[z]);
+              }
+          }*/
+        #endregion
+        Console.WriteLine("数据写入完成");
             // datapro(wt);
         }
         static void Gathertxt()        //合并txt文件，整合一次实验数据

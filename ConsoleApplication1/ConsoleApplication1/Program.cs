@@ -7,13 +7,16 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.IO;
+using System.IO.Ports;
 
 namespace ConsoleApplication1
 {
     class Program
     {
         static Socket client;
+        static SerialPort port;
         static List<byte> signal = new List<byte>();
+        static int g = 1;
         static void Main(string[] args)
         {
             client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -40,82 +43,103 @@ namespace ConsoleApplication1
             byte[] t_hz = HexStrTobyte("A5 A6 00 40 0F 00 00 57");
             byte[] tw_hz = HexStrTobyte("A5 46 00 40 0F 00 00 F7");
             EndPoint point = new IPEndPoint(IPAddress.Parse("192.168.0.3"), 2015);
+            port = new SerialPort("COM4", 9600);
+            port.Open();
             while (true)
             {
                 string key = Console.ReadLine();
-                if (key == "s")
+                /*if (key == "s")
                 {
                     client.SendTo(stop, point);
+                    while(value!="2")
+                    {
+                        port.Write("1");
+                    }
+                    Console.WriteLine("end");
                     continue;
-                }
-                else if (key == "5")
+                }*/
+                if (key == "s")
                 {
                     client.SendTo(f_hz, point);
-                    receiveMsg();
-                    datapro();
-                    Gathertxt();
+                    //DateTime before = DateTime.Now;
+                    // receiveMsg();
+                    //datapro();     //经过计算，写入数据时间至少需要15s
+                    //DateTime after = DateTime.Now;
+                    // TimeSpan ts = after.Subtract(before);
+                    //Console.WriteLine(ts);
+                    //port.Write("1");                    
+                    while (true)
+                    {
+                        string s = ReadSerialData();
+                        List<byte> signal = new List<byte>();
+                        if (s != "1")
+                        {
+                            Directory.CreateDirectory(@"C:\Users\radar\Desktop\data\data_" + g);//创建新的文件夹
+                            receiveMsg();
+                            datapro();
+                            g++;
+                            port.Write("1");                  //向下位机发送运动指令              
+                            //  Thread.Sleep(10000);//延时15s
+                            //Console.WriteLine(g);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    //client.SendTo(f_hz, point);
+                    Console.WriteLine("done");
                     continue;
                 }
-                else if (key == "t")
+                /*else if (key == "5")
                 {
-                    client.SendTo(t_hz, point);
-                    receiveMsg();
+                    client.SendTo(f_hz, point);
+                    receiveMsg();                    
                     datapro();
-                    // Gathertxt();
+                    for(int a=0;a<10000;a++)
+                    {
+                        port.Write("1");
+                    }
+
+                    // Gathertxt();   //文件合并速度太慢，在实验中选择不处理数据，结束后处理
                     continue;
-                }
-                else if (key == "tw")
-                {
-                    client.SendTo(tw_hz, point);
-                    receiveMsg();
-                    datapro();
-                    //Gathertxt();
-                    continue;
-                }
+                }*/
             }
         }
         //接受发送给本机ip特定端口的数据包         
         static void receiveMsg()
         {
             double wt;
-            // List<byte> signal = new List<byte>();           
             for (int j = 0; j < 1800; j++)
             {
                 EndPoint point = new IPEndPoint(IPAddress.Parse("192.168.0.3"), 2014);
                 byte[] buffer = new byte[1206];
                 int length = client.ReceiveFrom(buffer, ref point);
-                //string meg = BitConverter.ToString(buffer);
-                //Console.WriteLine(point.ToString() + "点云数据16进制：" + meg);//显示数据到控制台查看是否正非常
                 wt = (Convert.ToInt32(buffer[3]) * 256 + Convert.ToInt32(buffer[2])) * 0.01;//计算方位角，转化成double格式
-                // List<double> zuobiao = datapro(wt,buffer[4]);
-                /*foreach (double s in zuobiao)
-                 {Console.WriteLine(s);//遍历list}*/
-                //Thread.Sleep(100);
-                /*if (wt > 0 && wt < 180)
+                if (wt >= 180 && wt < 360)
                 {
                     foreach (byte i in buffer)  //将所有符合条件的数据一起收集到一个list中
                     {
                         Program.signal.Add(i);
                     }
-                }*/
-                foreach (byte i in buffer)  //将所有符合条件的数据一起收集到一个list中
-                {
-                    Program.signal.Add(i);
                 }
-                // Console.WriteLine(j);
             }
+            Console.WriteLine("数据采集完成");
         }
         static void datapro()   //分组数据的三维坐标计算
         {
             int f = 1;
+            #region      
             for (int a = 0; a < signal.Count; a = a + 1206)   //数据分组
             {
+                //StreamWriter sy = new StreamWriter("C:/Users/EricGeng/Desktop/23.txt");
                 byte[] group = new byte[1206];
                 for (int b = 0; b < 1206; b++)
                 {
                     group[b] = signal[b + a];
                 }
-                using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\data\" + f + "_data" + ".txt"))
+                // Directory.CreateDirectory(@"C:\Users\radar\Desktop\data\data_"+f);
+                using (StreamWriter sw = new StreamWriter("C:/Users/radar/Desktop/data/data_" + g + " / " + f + "_data" + ".txt"))
                 {
                     List<double> data = new List<double>();
                     for (int c = 0; c < 12; c++)
@@ -164,29 +188,12 @@ namespace ConsoleApplication1
                     {
                         sw.WriteLine(s.ToString());
                     }
+                    #endregion
                 }
                 f++;
             }
-        #region   16进制格式写入文件
-        /*  using (StreamWriter sw = new StreamWriter(@"C:\Users\radar\Desktop\" + j + "_R" + ".txt"))
-          {
-              for (int k = 0; k < 1106; k = k + 100)
-              {
-                  byte[] pit = new byte[100];
-                  for (int z = 0; z < 100; z = z + 1)
-                  {
-                      int m = k + z;
-                      pit[z] = buffer[m];
-                  }
-                  string pz = BitConverter.ToString(pit);
-                  //int pi = Convert.ToInt32(pit[z]);//转化16进制到十进制                       
-                  sw.WriteLine(pz);
-                  // fs.WriteByte(pit[z]);
-              }
-          }*/
-        #endregion
-        Console.WriteLine("数据写入完成");
-            // datapro(wt);
+            Console.WriteLine("数据写入文件完成");
+            signal.Clear();
         }
         static void Gathertxt()        //合并txt文件，整合一次实验数据
         {
@@ -199,83 +206,14 @@ namespace ConsoleApplication1
             }
             Console.WriteLine("数据合并完成");
         }
-        static void change_data()//暂时没想好写啥
+        static string ReadSerialData()   //读取串口的数据
         {
-
-        }
-        static List<double> datapro(double wt, double range)//数据处理
-        {
-            double[] H_ang = { -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35, -3.85, -6.35 };
-            double[] V_ang = { -19, -17, -15, -13, -11, -9, -7, -5, -3, -1, 1, 3, 5, 7, 9, 11 };
-            double[] dt = { 0, 3.125, 6.25, 9.375, 12.5, 15.625, 18.75, 21.875, 25, 28.125, 31.25, 34.375, 37.5, 40.625, 43.75, 46.875 };
-            //double range = 596.233;
-            double w = 0.0018;
-            //double[] data = { };
-            List<double> data = new List<double>();
-            for (int i = 0; i < 32; i++)
+            string value = "";
+            if (port != null && port.BytesToRead > 0)
             {
-                if (i < 16)
-                {
-                    double angle = -wt - w * dt[i] - H_ang[i];
-                    double y = range * Math.Cos(V_ang[i]) * Math.Sin(angle);
-                    double x = range * Math.Cos(V_ang[i]) * Math.Cos(angle);
-                    double z = range * Math.Sin(V_ang[i]);
-                    data.Add(x);
-                    data.Add(y);
-                    data.Add(z);
-                }
-                else
-                {
-                    double angle = -wt - w * (dt[i - 16] + 50) - H_ang[i - 16];
-                    double y = range * Math.Cos(V_ang[i - 16]) * Math.Sin(angle);
-                    double x = range * Math.Cos(V_ang[i - 16]) * Math.Cos(angle);
-                    double z = range * Math.Sin(V_ang[i - 16]);
-                    data.Add(x);
-                    data.Add(y);
-                    data.Add(z);
-                }
+                value = port.ReadExisting();
             }
-            return data;
-        }
-        static byte[] GetFileData(string fileUrl)//读取txt文件数据，从ASCII码转换过来，较复杂，再不影响实时性的情况下，不适用
-        {
-            FileStream fs = new FileStream(fileUrl, FileMode.Open, FileAccess.Read);
-            try
-            {
-                byte[] buffur = new byte[fs.Length];
-                fs.Read(buffur, 0, (int)fs.Length);
-                byte[] n_buf = new byte[fs.Length];
-                int m = 0;
-                for (int j = 0; j < fs.Length; j = j + 1)
-                {
-                    if (buffur[j] == 45)               //处理ASCII转化时候产生的“-”的影响，但是未消除换行的影响，导致每组数据有201个，每组最后的10再ASCII中表示换行
-                    {
-                        n_buf[m] = buffur[j + 1];
-                        j++;
-                        m++;
-                    }
-                    else
-                    {
-                        n_buf[m] = buffur[j];
-                        m++;
-                    }
-                }
-                //int i = Convert.ToInt32(buffur[0]);
-                // Console.WriteLine(i);
-                return buffur;
-            }
-            /*catch (Exception ex)
-            {
-                //MessageBoxHelper.ShowPrompt(ex.Message);
-                return null;
-            }*/
-            finally
-            {
-                if (fs != null)//关闭资源
-                {
-                    fs.Close();
-                }
-            }
+            return value;
         }
     }
 }

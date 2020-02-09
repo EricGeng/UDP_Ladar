@@ -37,6 +37,7 @@ void loop() {
   while(Serial.available())
   {
     char receiveVal = Serial.read();
+    Serial.print(receiveVal);
     if( receiveVal =='1')
     {     
       if(s<nums)//次数
@@ -63,7 +64,28 @@ void loop() {
         }
         s=1;        
       }          
-    } 
+    }
+    else if( receiveVal =='2') 
+    {
+      for(int k=0;k<5;k++)
+      {
+         digitalWrite(13, HIGH);
+         delay(500);
+         digitalWrite(13, LOW); 
+         delay(500);
+       }
+    }
+      else if( receiveVal =='3') 
+    {
+         for(int j=0;j<10;j++)
+         {
+            digitalWrite(13, HIGH);
+            delay(1000);
+            digitalWrite(13, LOW); 
+            delay(500);
+         }
+         
+    }
   }
     /*if(serialString == "2")
     {

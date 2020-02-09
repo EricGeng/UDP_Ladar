@@ -1,7 +1,8 @@
 % 数据可视化
 clear;
 clc;
-m=load("C:\Users\EricGeng\Desktop\angle_data.txt");   %单独读取文件全部数据
+m=load("G:\20191229\data\zuobiao.txt");   %单独读取文件全部数据
+% m=load("C:\Users\EricGeng\Desktop\zuobiao.txt");   
 n=size(m);
 n=n(1)/4;
 data=ones(n,4);
@@ -10,11 +11,27 @@ for i=1:n
 %     data(i,1)=floor(m(k)*10);
     data(i,1)=m(k);
     data(i,2)=m(k+1);
-    data(i,3)=m(k+2)*10;
+    data(i,3)=m(k+2);
     data(i,4)=m(k+3);
     k=k+4;
 end
 %滤水平电点
+d2=find(abs(data(:,2))>7000);
+data(d2,:,:,:)=[];
+d2=find(data(:,1)<-700);
+data(d2,:,:,:)=[];
+d2=find(data(:,1)>1500);
+data(d2,:,:,:)=[];
+d2=find(data(:,2)>-5500);
+data(d2,:,:,:)=[];
+d2=find(data(:,3)<-1000);
+data(d2,:,:,:)=[];
+x=data(:,1);
+y=data(:,2);
+z=data(:,3);
+figure;
+scatter3(x,y,z,'.','.');
+
 d1=find(data(:,1)<-260);%获取想要范围内的数据
 data(d1,:,:,:)=[];
 d2=find(data(:,1)>-100);
@@ -39,13 +56,18 @@ for j=1:3
     data(d2,:)=[];
 end
 %图像生成
-
+d2=find(abs(data(:,2))>7000);
+data(d2,:,:,:)=[];
+d2=find(abs(data(:,1))>1200);
+data(d2,:,:,:)=[];
+d2=find(abs(data(:,2))<1200);
+data(d2,:,:,:)=[];
 x=data(:,1);
 y=data(:,2);
 z=data(:,3);
-% scatter3(x,y,z,'.','.');
-plot(x,z,'.');
-hold on;
+figure;
+scatter3(x,y,z,'.','.');
+
 
 
 %%
@@ -74,3 +96,21 @@ hold on;
 % plot(m,n,"b.");
 % title("雷达16线相对位置");
 % % plot(0,0);
+% a1=load("G:\20191110\20191110-v1\20191110-1-9.txt");
+% figure;imshow(a1);
+% a2=load('G:\20191110\20191110-v1\20191110-1-1.txt');
+% figure;imshow(a2);
+% a3=load('G:\20191110\20191110-v1\20191110-1-2.txt');
+% figure;imshow(a3);
+% a4=load('G:\20191110\20191110-v1\20191110-1-3.txt');
+% figure;imshow(a4);
+% a5=load('G:\20191110\20191110-v1\20191110-1-4.txt');
+% figure;imshow(a5);
+% a6=load('G:\20191110\20191110-v1\20191110-1-5.txt');
+% figure;imshow(a6);
+% a7=load('G:\20191110\20191110-v1\20191110-1-6.txt');
+% figure;imshow(a7);
+% a8=load('G:\20191110\20191110-v1\20191110-1-7.txt');
+% figure;imshow(a8);
+% a9=load('G:\20191110\20191110-v1\20191110-1-8.txt');
+% figure;imshow(a9);

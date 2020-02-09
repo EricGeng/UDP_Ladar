@@ -166,9 +166,13 @@ namespace ConsoleApplication1
                                 double y = range[i] * Math.Cos(V_ang[i] / 180 * Math.PI) * Math.Sin(angle);
                                 double x = range[i] * Math.Cos(V_ang[i] / 180 * Math.PI) * Math.Cos(angle);
                                 double z = range[i] * Math.Sin(V_ang[i] / 180 * Math.PI);
-                                data.Add(x);
-                                data.Add(y);
-                                data.Add(z);
+                                //坐标系转换
+                                double X = y;
+                                double Y = (50 - x) * Math.Cos(g * 0.1 / 180 * Math.PI) - z * Math.Sin(g * 0.1 / 180 * Math.PI);
+                                double Z = (50 - x) * Math.Sin(g * 0.1 / 180 * Math.PI) + z * Math.Cos(g * 0.1 / 180 * Math.PI);
+                                data.Add(X);
+                                data.Add(Y);
+                                data.Add(Z);
                                 data.Add(reflet[i]);
                             }
                             else

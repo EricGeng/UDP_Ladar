@@ -1,7 +1,7 @@
 % 数据可视化
 clear;
 clc;
-m=load("C:\Users\EricGeng\Desktop\angle_data2.txt");   %单独读取文件全部数据
+m=load("G:\标定\out\data\all_angle.txt");   %单独读取文件全部数据
 n=size(m);
 n=n(1)/4;
 data=ones(n,4);
@@ -15,7 +15,7 @@ for i=1:n
     k=k+4;
 end
 %滤水平电点
-d1=find(data(:,1)<-261);%获取想要范围内的数据
+d1=find(data(:,1)<-260);%获取想要范围内的数据
 data(d1,:)=[];
 d2=find(data(:,1)>-120);
 data(d2,:)=[];
@@ -48,36 +48,40 @@ a=length(data(:,1));
 for i=1:a
     A=data(i,1);
     B=data(i,3);
-    mmm(B,A)=255/7000*data(i,2);
-%     mmm(B,A)=data(i,4);
+%     mmm(B,A)=255/13000*data(i,2);
+    mmm(B,A)=data(i,4);
 end
-% for i=1:A
-%     k=1;
-%     for j=1:a
-%         if(data(j,3)==i)
-%             mmm(i,k)=data(j,4);
-%             k=k+1;
+for i=1:A
+    k=1;
+    for j=1:a
+        if(data(j,3)==i)
+            mmm(i,k)=data(j,4);
+            k=k+1;
+        end
+    end
+end
+% for k=1:B      %横向遍历，弥补临近空白点
+%     for kk=2:A-1
+%         if mmm(k,kk)==255&&mmm(k,kk-1)~=255&&mmm(k,kk+1)~=255
+%             mmm(k,kk)=(mmm(k,kk-1)+mmm(k,kk+1))/2;
 %         end
 %     end
 % end
-for k=1:B      %横向遍历，弥补空白点
-    for kk=2:A-1
-        if mmm(k,kk)==255&&mmm(k,kk-1)~=255&&mmm(k,kk+1)~=255
-            mmm(k,kk)=(mmm(k,kk-1)+mmm(k,kk+1))/2;
-        end
-    end
-end
-for k=1:A    %纵向遍历，弥补空白点
-    for kk=2:B-1
-        if mmm(kk,k)==255&&mmm(kk-1,k)~=255&&mmm(kk+1,k)~=255
-            mmm(kk,k)=(mmm(kk-1,k)+mmm(kk+1,k))/2;
-        end
-    end
-end
+% for k=1:A    %纵向遍历，弥补空白点
+%     for kk=2:B-1
+%         if mmm(kk,k)==255&&mmm(kk-1,k)~=255&&mmm(kk+1,k)~=255
+%             mmm(kk,k)=(mmm(kk-1,k)+mmm(kk+1,k))/2;
+%         end
+%     end
+% end
+
 % w = fspecial('gaussian',[2,2],1);
 % I11 = imfilter(mmm,w,'replicate');
 mmm=uint8(mmm);
 mmm=rot90(mmm,2);
+% a=load('C:/Users/EricGeng/Desktop/3.txt');
+% a=a*255;
+% pic=mmm+a;
 
 %图像生成
 figure;
@@ -89,7 +93,7 @@ imshow(mmm);
 % figure;
 % plot(x,z,'.');
 % hold on;
-imwrite(mmm,'C:\Users\EricGeng\Desktop\2.png');
+imwrite(mmm,'C:\Users\EricGeng\Desktop\123.png');
 
 %%
 % clear;
@@ -116,3 +120,25 @@ imwrite(mmm,'C:\Users\EricGeng\Desktop\2.png');
 % n=data(17:32,2);
 % plot(m,n,"b.");
 % title("雷达16线相对位置");
+%% test
+clear;
+clc;
+m=load("C:\Users\wzx\Desktop\all_data.txt");   %单独读取文件全部数据
+n=size(m);
+n=n(1)/4;
+data=ones(n,4);
+k=1;
+for i=1:n
+    data(i,1)=m(k);
+    data(i,2)=m(k+1);
+    data(i,3)=m(k+2);
+    data(i,4)=m(k+3);
+    k=k+4;
+end
+x=data(:,1);
+y=data(:,2);
+z=data(:,3);
+figure;
+colour_count=5;
+C=round(Z*colour_count);
+scatter3(x,y,z,10,C,'filled');
